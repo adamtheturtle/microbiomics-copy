@@ -1,5 +1,6 @@
 # Tests
-
+env:
+  RENV_PATHS_ROOT: ~/.local/share/renv
 # Test1 : Intro
 
 name: "R Test 1" #name of test
@@ -9,7 +10,23 @@ on:
 jobs:
   build:
     runs-on: ubuntu-18.04
+
     steps:
+
+	- name: Cache packages
+	  uses: actions/cache@v1
+	  with:
+	    path: ${{ env.RENV_PATHS_ROOT }}
+	    key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+	    restore-keys: |
+	      ${{ runner.os }}-renv-
+
+	- name: Restore packages
+	  shell: Rscript {0}
+	  run: |
+	    if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+	    renv::restore()
+
     - uses: actions/checkout@master
     - uses: r-lib/actions/setup-r@v1
       with:
